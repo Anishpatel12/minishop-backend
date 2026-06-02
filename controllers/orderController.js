@@ -3,7 +3,27 @@
 const Order = require("../models/Order");
 const User = require("../models/User");
 const Product = require("../models/Product");
+const Razorpay = require("razorpay");
+const crypto = require("crypto");
 
+let razorpay = null;
+
+if (
+  process.env.RAZORPAY_KEY_ID &&
+  process.env.RAZORPAY_KEY_SECRET
+) {
+  razorpay = new Razorpay({
+    key_id:
+      process.env.RAZORPAY_KEY_ID,
+
+    key_secret:
+      process.env.RAZORPAY_KEY_SECRET,
+  });
+} else {
+  console.warn(
+    "Razorpay credentials are not set. Razorpay payment gateway will not work."
+  );
+}
 //
 // TRACKING TEMPLATE
 //
@@ -649,6 +669,152 @@ exports.trackOrder =
 
       res.status(500).json({
         message: "Server Error",
+      });
+    }
+  };
+  //
+// CREATE RAZORPAY ORDER
+//
+//
+// CREATE RAZORPAY ORDER
+//
+exports.createRazorpayOrder =
+  async (req, res) => {
+    try {
+      if (!razorpay) {
+        return res
+          .status(500)
+          .json({
+            message:
+              "Razorpay Not Configured",
+          });
+      }
+
+      const { amount } = req.body;
+
+      const order =
+        await razorpay.orders.create({
+          amount:
+            Number(amount) * 100,
+
+          currency: "INR",
+
+          receipt:
+            "receipt_" +
+            Date.now(),
+        });
+
+      res.json(order);
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        message:
+          "Failed To Create Razorpay Order",
+      });
+    }
+  };
+
+//
+// VERIFY PAYMENT
+//
+exports.verifyRazorpayPayment =
+  async (req, res) => {
+    try {
+      const {
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        orderData,
+      } = req.body;
+
+      const body =
+        razorpay_order_id +
+        "|" +
+        razorpay_payment_id;
+
+      const expectedSignature =
+        crypto
+          .createHmac(
+            "sha256",
+            process.env
+              .RAZORPAY_KEY_SECRET
+          )
+          .update(body)
+          .digest("hex");
+
+      if (
+        expectedSignature !==
+        razorpay_signature
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Payment Verification Failed",
+          });
+      }
+
+      const order =
+        await Order.create({
+          user:
+            req.user._id,
+
+          products:
+            orderData.products,
+
+          shipping:
+            orderData.shipping,
+
+          total:
+            orderData.total,
+
+          paymentMethod:
+            "Razorpay",
+
+          paymentStatus:
+            "Paid",
+
+          razorpayOrderId:
+            razorpay_order_id,
+
+          razorpayPaymentId:
+            razorpay_payment_id,
+
+          razorpaySignature:
+            razorpay_signature,
+
+          status:
+            "Processing",
+
+          trackingSteps:
+            createTrackingSteps(),
+
+          estimatedDelivery:
+            "2-4 Business Days",
+
+          itemsCount:
+            orderData.products.reduce(
+              (
+                sum,
+                item
+              ) =>
+                sum +
+                item.quantity,
+              0
+            ),
+        });
+
+      res.json({
+        success: true,
+        order,
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        message:
+          "Payment Verification Failed",
       });
     }
   };

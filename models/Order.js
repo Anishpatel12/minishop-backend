@@ -1,162 +1,185 @@
 const mongoose = require("mongoose");
 
-const orderSchema =
-  new mongoose.Schema(
-    {
-      user: {
-        type:
-          mongoose.Schema.Types.ObjectId,
+const orderSchema = new mongoose.Schema(
+  {
+    user: {
+      type:
+        mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
 
-        ref: "User",
+    products: [
+      {
+        productId: {
+          type:
+            mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
 
+        title: {
+          type: String,
+          required: true,
+        },
+
+        price: {
+          type: Number,
+          required: true,
+        },
+
+        image: {
+          type: String,
+          default: "",
+        },
+
+        quantity: {
+          type: Number,
+          default: 1,
+        },
+      },
+    ],
+
+    shipping: {
+      fullName: {
+        type: String,
         required: true,
       },
 
-      products: [
-        {
-          productId: {
-            type:
-              mongoose.Schema.Types.ObjectId,
-
-            ref: "Product",
-
-            required: true,
-          },
-
-          title: String,
-
-          price: Number,
-
-          image: String,
-
-          quantity: {
-            type: Number,
-            default: 1,
-          },
-        },
-      ],
-
-      shipping: {
-        fullName: {
-          type: String,
-          required: true,
-        },
-
-        phone: {
-          type: String,
-          required: true,
-        },
-
-        address: {
-          type: String,
-          required: true,
-        },
-
-        landmark: String,
-
-        city: {
-          type: String,
-          required: true,
-        },
-
-        state: {
-          type: String,
-          required: true,
-        },
-
-        country: {
-          type: String,
-          default: "India",
-        },
-
-        pincode: {
-          type: String,
-          required: true,
-        },
-
-        latitude: Number,
-
-        longitude: Number,
-      },
-
-      total: {
-        type: Number,
+      phone: {
+        type: String,
         required: true,
       },
 
-      itemsCount: {
-        type: Number,
-        default: 0,
-      },
-
-      paymentMethod: {
+      address: {
         type: String,
-        default: "COD",
+        required: true,
       },
 
-      paymentStatus: {
-        type: String,
-
-        enum: [
-          "Pending",
-          "Paid",
-          "Failed",
-          "Refunded",
-        ],
-
-        default: "Pending",
-      },
-
-      status: {
-        type: String,
-
-        enum: [
-          "Processing",
-          "Shipped",
-          "Out For Delivery",
-          "Delivered",
-          "Cancelled",
-        ],
-
-        default: "Processing",
-      },
-
-      trackingSteps: [
-        {
-          title: String,
-
-          completed: {
-            type: Boolean,
-            default: false,
-          },
-
-          completedAt: Date,
-        },
-      ],
-
-      estimatedDelivery: {
-        type: String,
-        default:
-          "2-4 Business Days",
-      },
-
-      orderNotes: {
+      landmark: {
         type: String,
         default: "",
       },
 
-      deliveredAt: Date,
+      city: {
+        type: String,
+        required: true,
+      },
 
-      cancelledAt: Date,
+      state: {
+        type: String,
+        required: true,
+      },
+
+      country: {
+        type: String,
+        default: "India",
+      },
+
+      pincode: {
+        type: String,
+        required: true,
+      },
+
+      latitude: Number,
+
+      longitude: Number,
     },
 
-    {
-      timestamps: true,
-    }
-  );
+    total: {
+      type: Number,
+      required: true,
+    },
 
-module.exports =
-  mongoose.model(
-    "Order",
-    orderSchema
-  );
+    itemsCount: {
+      type: Number,
+      default: 0,
+    },
+
+    paymentMethod: {
+      type: String,
+      enum: [
+        "COD",
+        "UPI",
+        "CARD",
+        "Razorpay",
+      ],
+      default: "COD",
+    },
+
+    paymentStatus: {
+      type: String,
+      enum: [
+        "Pending",
+        "Paid",
+        "Failed",
+        "Refunded",
+      ],
+      default: "Pending",
+    },
+
+    // Razorpay Fields
+    razorpayOrderId: {
+      type: String,
+      default: "",
+    },
+
+    razorpayPaymentId: {
+      type: String,
+      default: "",
+    },
+
+    razorpaySignature: {
+      type: String,
+      default: "",
+    },
+
+    status: {
+      type: String,
+      enum: [
+        "Processing",
+        "Shipped",
+        "Out For Delivery",
+        "Delivered",
+        "Cancelled",
+      ],
+      default: "Processing",
+    },
+
+    trackingSteps: [
+      {
+        title: String,
+
+        completed: {
+          type: Boolean,
+          default: false,
+        },
+
+        completedAt: Date,
+      },
+    ],
+
+    estimatedDelivery: {
+      type: String,
+      default:
+        "2-4 Business Days",
+    },
+
+    orderNotes: {
+      type: String,
+      default: "",
+    },
+
+    deliveredAt: Date,
+
+    cancelledAt: Date,
+  },
+  {
+    timestamps: true,
+  }
+);
+
+module.exports = mongoose.model(
+  "Order",
+  orderSchema
+);

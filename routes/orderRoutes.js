@@ -1,14 +1,9 @@
-
 // backend/routes/orderRoutes.js
 
 const express = require("express");
+const router = express.Router();
 
-const router =
-  express.Router();
-
-//
-// MIDDLEWARE
-//
+// Middleware
 const protect = require(
   "../middleware/authMiddleware"
 );
@@ -17,9 +12,7 @@ const adminOnly = require(
   "../middleware/adminMiddleware"
 );
 
-//
-// CONTROLLERS
-//
+// Controllers
 const {
   createOrder,
   getMyOrders,
@@ -28,64 +21,79 @@ const {
   cancelOrder,
   getLatestOrder,
   trackOrder,
-  searchOrders
+  searchOrders,
+  createRazorpayOrder,
+  verifyRazorpayPayment,
 } = require(
   "../controllers/orderController"
 );
 
 //
-// =====================================
 // USER ROUTES
-// =====================================
 //
 
-// CREATE ORDER
+// Create COD Order
 router.post(
   "/",
   protect,
   createOrder
 );
 
-// GET MY ORDERS
+// Razorpay Create Order
+router.post(
+  "/razorpay/create-order",
+  protect,
+  createRazorpayOrder
+);
+
+// Razorpay Verify Payment
+router.post(
+  "/razorpay/verify",
+  protect,
+  verifyRazorpayPayment
+);
+
+// User Orders
 router.get(
   "/my-orders",
   protect,
   getMyOrders
 );
 
-// GET LATEST ORDER
+// Latest Order
 router.get(
   "/latest",
   protect,
   getLatestOrder
 );
 
-// TRACK ORDER
+// Track Order
 router.get(
   "/track/:id",
   protect,
   trackOrder
 );
 
-// CANCEL ORDER
+// Cancel Order
 router.put(
   "/cancel/:id",
   protect,
   cancelOrder
 );
+
+//
+// ADMIN ROUTES
+//
+
+// Search Orders
 router.get(
   "/search",
   protect,
   adminOnly,
   searchOrders
 );
-//
-// =====================================
-// ADMIN ROUTES
-// =====================================
-//
 
-// GET ALL ORDERS
+// Get All Orders
 router.get(
   "/",
   protect,
@@ -93,7 +101,7 @@ router.get(
   getOrders
 );
 
-// UPDATE ORDER STATUS
+// Update Order Status
 router.put(
   "/:id",
   protect,
@@ -102,4 +110,3 @@ router.put(
 );
 
 module.exports = router;
-
