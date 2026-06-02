@@ -52,6 +52,12 @@ router.post(
   protect,
   verifyRazorpayPayment
 );
+router.get("/razorpay/test", (req, res) => {
+  res.json({
+    success: true,
+    message: "Razorpay Working",
+  });
+});
 
 // User Orders
 router.get(
