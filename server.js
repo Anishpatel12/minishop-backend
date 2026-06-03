@@ -12,6 +12,8 @@ const userRoutes = require("./routes/userRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
+const aiRoutes =
+  require("./routes/aiRoutes");
 
 // Database
 connectDB();
@@ -48,7 +50,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/categories", categoryRoutes);
-
+app.use("/api/ai", aiRoutes);
 // 404 Route (Express 5 Safe)
 app.use((req, res) => {
   res.status(404).json({
