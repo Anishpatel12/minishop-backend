@@ -1,236 +1,260 @@
 const Product = require("../models/Product");
+
 const {
   parseProduct,
 } = require(
   "../services/geminiService"
 );
+
 function getImageUrl(title) {
-  return `https://source.unsplash.com/600x600/?${encodeURIComponent(title)}`;
-}
-exports.processAICommand = async (req, res) => {
-  try {
-    const { command } = req.body;
-
-    if (!command) {
-      return res.status(400).json({
-        success: false,
-        message: "Command required",
-      });
-    }
-
-    const text = command.trim();
-
-    // ===================================
-    // ADD PRODUCT
-    // ===================================
-    if (
-      text.toLowerCase().startsWith(
-        "add product"
-      )
-    ) {
-      const regex =
-        /add product (.+) price (\d+) stock (\d+) category (.+) brand (.+) description (.+)/i;
-
-      const match =
-        text.match(regex);
-
-      if (!match) {
-        return res.json({
-          success: false,
-          message:
-            "Format: Add product NAME price 100 stock 10 category CATEGORY brand BRAND description DESCRIPTION",
-        });
-      }
-
- if (
-  text.toLowerCase().startsWith(
-    "add"
-  )
-) {
-  const data =
-    await parseProduct(
-      command
-    );
-
-  const product =
-    await Product.create({
-      title: data.title,
-      price: data.price,
-      stock: data.stock,
-      category:
-        data.category,
-      brand:
-        data.brand,
-      description:
-        data.description,
-
-      images: [
-        getImageUrl(
-          data.title
-        ),
-      ],
-    });
-
-  return res.json({
-    success: true,
-    message:
-      "Product Added Successfully",
-    product,
-  });
+  return `https://source.unsplash.com/600x600/?${encodeURIComponent(
+    title
+  )}`;
 }
 
-    // ===================================
-    // DELETE PRODUCT
-    // ===================================
-    if (
-      text.toLowerCase().startsWith(
-        "delete product"
-      )
-    ) {
-      const title =
-        text.replace(
-          /delete product/i,
-          ""
-        ).trim();
+exports.processAICommand =
+  async (req, res) => {
+    try {
+      const { command } =
+        req.body;
 
-      const product =
-        await Product.findOneAndDelete(
-          {
-            title: {
-              $regex:
-                new RegExp(
-                  title,
-                  "i"
-                ),
-            },
-          }
-        );
-
-      if (!product) {
-        return res.json({
-          success: false,
-          message:
-            "Product Not Found",
-        });
+      if (!command) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message:
+              "Command required",
+          });
       }
 
-      return res.json({
-        success: true,
-        message:
-          "Product Deleted Successfully",
-      });
-    }
+      const text =
+        command.trim();
 
-    // ===================================
-    // UPDATE STOCK
-    // ===================================
-    if (
-      text.toLowerCase().startsWith(
-        "update stock"
-      )
-    ) {
-      const regex =
-        /update stock (.+) (\d+)/i;
+      // ===================================
+      // ADD PRODUCT USING GEMINI
+      // ===================================
+      if (
+        text
+          .toLowerCase()
+          .startsWith("add")
+      ) {
+        const data =
+          await parseProduct(
+            command
+          );
 
-      const match =
-        text.match(regex);
+        const product =
+          await Product.create({
+            title:
+              data.title,
+            price:
+              Number(
+                data.price
+              ) || 0,
+            stock:
+              Number(
+                data.stock
+              ) || 0,
+            category:
+              data.category ||
+              "General",
+            brand:
+              data.brand ||
+              "Unknown",
+            description:
+              data.description ||
+              "",
 
-      if (!match) {
-        return res.json({
-          success: false,
-          message:
-            "Format: Update stock PRODUCT_NAME 100",
-        });
-      }
-
-      const title =
-        match[1];
-
-      const stock =
-        Number(
-          match[2]
-        );
-
-      const product =
-        await Product.findOneAndUpdate(
-          {
-            title: {
-              $regex:
-                new RegExp(
-                  title,
-                  "i"
-                ),
-            },
-          },
-          { stock },
-          { new: true }
-        );
-
-      if (!product) {
-        return res.json({
-          success: false,
-          message:
-            "Product Not Found",
-        });
-      }
-
-      return res.json({
-        success: true,
-        message:
-          "Stock Updated Successfully",
-        product,
-      });
-    }
-
-    // ===================================
-    // FIND PRODUCT
-    // ===================================
-    if (
-      text.toLowerCase().startsWith(
-        "find product"
-      )
-    ) {
-      const title =
-        text.replace(
-          /find product/i,
-          ""
-        ).trim();
-
-      const product =
-        await Product.findOne({
-          title: {
-            $regex:
-              new RegExp(
-                title,
-                "i"
+            images: [
+              getImageUrl(
+                data.title
               ),
-          },
-        });
+            ],
+          });
 
-      if (!product) {
         return res.json({
-          success: false,
+          success: true,
           message:
-            "Product Not Found",
+            "Product Added Successfully",
+          product,
+        });
+      }
+
+      // ===================================
+      // DELETE PRODUCT
+      // ===================================
+      if (
+        text
+          .toLowerCase()
+          .startsWith(
+            "delete product"
+          )
+      ) {
+        const title =
+          text
+            .replace(
+              /delete product/i,
+              ""
+            )
+            .trim();
+
+        const product =
+          await Product.findOneAndDelete(
+            {
+              title: {
+                $regex:
+                  new RegExp(
+                    title,
+                    "i"
+                  ),
+              },
+            }
+          );
+
+        if (!product) {
+          return res.json({
+            success: false,
+            message:
+              "Product Not Found",
+          });
+        }
+
+        return res.json({
+          success: true,
+          message:
+            "Product Deleted Successfully",
+        });
+      }
+
+      // ===================================
+      // UPDATE STOCK
+      // ===================================
+      if (
+        text
+          .toLowerCase()
+          .startsWith(
+            "update stock"
+          )
+      ) {
+        const regex =
+          /update stock (.+) (\d+)/i;
+
+        const match =
+          text.match(
+            regex
+          );
+
+        if (!match) {
+          return res.json({
+            success: false,
+            message:
+              "Format: Update stock PRODUCT_NAME 100",
+          });
+        }
+
+        const title =
+          match[1];
+
+        const stock =
+          Number(
+            match[2]
+          );
+
+        const product =
+          await Product.findOneAndUpdate(
+            {
+              title: {
+                $regex:
+                  new RegExp(
+                    title,
+                    "i"
+                  ),
+              },
+            },
+            { stock },
+            {
+              new: true,
+            }
+          );
+
+        if (!product) {
+          return res.json({
+            success: false,
+            message:
+              "Product Not Found",
+          });
+        }
+
+        return res.json({
+          success: true,
+          message:
+            "Stock Updated Successfully",
+          product,
+        });
+      }
+
+      // ===================================
+      // FIND PRODUCT
+      // ===================================
+      if (
+        text
+          .toLowerCase()
+          .startsWith(
+            "find product"
+          )
+      ) {
+        const title =
+          text
+            .replace(
+              /find product/i,
+              ""
+            )
+            .trim();
+
+        const product =
+          await Product.findOne(
+            {
+              title: {
+                $regex:
+                  new RegExp(
+                    title,
+                    "i"
+                  ),
+              },
+            }
+          );
+
+        if (!product) {
+          return res.json({
+            success: false,
+            message:
+              "Product Not Found",
+          });
+        }
+
+        return res.json({
+          success: true,
+          product,
         });
       }
 
       return res.json({
-        success: true,
-        product,
+        success: false,
+        message:
+          "Unknown Command",
       });
-    }
+    } catch (error) {
+      console.error(
+        error
+      );
 
-    return res.json({
-      success: false,
-      message:
-        "Unknown Command",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message:
-        error.message,
-    });
-  }
-};
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message:
+            error.message,
+        });
+    }
+  };
