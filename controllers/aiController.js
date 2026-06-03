@@ -1,5 +1,12 @@
 const Product = require("../models/Product");
-
+const {
+  parseProduct,
+} = require(
+  "../services/geminiService"
+);
+function getImageUrl(title) {
+  return `https://source.unsplash.com/600x600/?${encodeURIComponent(title)}`;
+}
 exports.processAICommand = async (req, res) => {
   try {
     const { command } = req.body;
@@ -35,31 +42,42 @@ exports.processAICommand = async (req, res) => {
         });
       }
 
-      const product =
-        await Product.create({
-          title: match[1],
-          price: Number(
-            match[2]
-          ),
-          stock: Number(
-            match[3]
-          ),
-          category:
-            match[4],
-          brand:
-            match[5],
-          description:
-            match[6],
-          images: [],
-        });
+ if (
+  text.toLowerCase().startsWith(
+    "add"
+  )
+) {
+  const data =
+    await parseProduct(
+      command
+    );
 
-      return res.json({
-        success: true,
-        message:
-          "Product Added Successfully",
-        product,
-      });
-    }
+  const product =
+    await Product.create({
+      title: data.title,
+      price: data.price,
+      stock: data.stock,
+      category:
+        data.category,
+      brand:
+        data.brand,
+      description:
+        data.description,
+
+      images: [
+        getImageUrl(
+          data.title
+        ),
+      ],
+    });
+
+  return res.json({
+    success: true,
+    message:
+      "Product Added Successfully",
+    product,
+  });
+}
 
     // ===================================
     // DELETE PRODUCT
