@@ -24,6 +24,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://minishop-rr2g20ru7-anishpatel12s-projects.vercel.app",
+      "https://minishop-lovat.vercel.app",
     ],
     credentials: true,
   })
