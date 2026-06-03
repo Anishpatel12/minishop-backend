@@ -13,12 +13,12 @@ async function parseProduct(
   command
 ) {
   const model =
-    genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-    });
+  genAI.getGenerativeModel({
+    model: "gemini-2.0-flash",
+  });
 
   const prompt = `
-Convert the following product request into valid JSON.
+Convert the product request into JSON.
 
 Fields:
 title
@@ -28,7 +28,7 @@ category
 brand
 description
 
-Return ONLY JSON.
+Return only valid JSON.
 
 Request:
 ${command}
@@ -39,14 +39,20 @@ ${command}
       prompt
     );
 
-  return JSON.parse(
+  const text =
     result.response
       .text()
       .replace(
-        /```json|```/g,
+        /```json/g,
         ""
       )
-  );
+      .replace(
+        /```/g,
+        ""
+      )
+      .trim();
+
+  return JSON.parse(text);
 }
 
 module.exports = {
