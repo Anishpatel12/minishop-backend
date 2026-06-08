@@ -2,6 +2,7 @@ const Product = require("../models/Product");
 
 const {
   parseProduct,
+  generateProducts,
 } = require(
   "../services/groqService"
 );
@@ -31,8 +32,60 @@ exports.processAICommand =
       const text =
         command.trim();
 
+        // ===================================
+// GENERATE PRODUCTS
+// ===================================
+
+if (
+  text
+    .toLowerCase()
+    .startsWith("generate")
+) {
+
+  const products =
+    await generateProducts(
+      command
+    );
+
+  const savedProducts =
+    await Product.insertMany(
+      products.map((p) => ({
+        title: p.title,
+        price:
+          Number(p.price) || 0,
+
+        stock:
+          Number(p.stock) || 0,
+
+        category:
+          p.category ||
+          "General",
+
+        brand:
+          p.brand ||
+          "Unknown",
+
+        description:
+          p.description ||
+          "",
+
+        images: [
+          getImageUrl(
+            p.title
+          ),
+        ],
+      }))
+    );
+
+  return res.json({
+    success: true,
+    message: `${savedProducts.length} Products Generated Successfully`,
+    count:
+      savedProducts.length,
+  });
+}
       // ===================================
-      // ADD PRODUCT USING GEMINI
+      // ADD PRODUCT USING GROQ
       // ===================================
       if (
         text
