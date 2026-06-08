@@ -3,7 +3,7 @@ const Product = require("../models/Product");
 const {
   parseProduct,
 } = require(
-  "../services/geminiService"
+  "../services/groqService"
 );
 
 function getImageUrl(title) {
