@@ -1,5 +1,5 @@
 const Product = require("../models/Product");
-
+const Order = require("../models/Order");
 const {
   parseProduct,
   generateProducts,
@@ -8,7 +8,7 @@ const {
 );
 
 function getImageUrl(title) {
-  return `https://source.unsplash.com/600x600/?${encodeURIComponent(
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(
     title
   )}`;
 }
@@ -31,7 +31,10 @@ exports.processAICommand =
 
       const text =
         command.trim();
-
+console.log(
+  "AI COMMAND:",
+  text
+);
         // ===================================
 // GENERATE PRODUCTS
 // ===================================
@@ -247,6 +250,70 @@ if (
         });
       }
 
+      // ===================================
+// INVENTORY ANALYTICS
+// ===================================
+// ===================================
+// INVENTORY ANALYTICS
+// ===================================
+
+if (
+  text
+    .toLowerCase()
+    .includes(
+      "analyze inventory"
+    )
+) {
+  const products =
+    await Product.find();
+
+  const totalProducts =
+    products.length;
+
+  const lowStock =
+    products.filter(
+      (p) =>
+        p.stock > 0 &&
+        p.stock <= 5
+    );
+
+  const outOfStock =
+    products.filter(
+      (p) => p.stock === 0
+    );
+
+  const featured =
+    products.filter(
+      (p) => p.featured
+    );
+
+  const recommendations =
+    lowStock.map((p) => ({
+      title: p.title,
+      currentStock:
+        p.stock,
+      suggestedRestock:
+        Math.max(
+          50,
+          100 - p.stock
+        ),
+    }));
+
+  return res.json({
+    success: true,
+    message:
+      "Inventory Analysis Complete",
+
+    analytics: {
+      totalProducts,
+      lowStock,
+      outOfStock,
+      featuredCount:
+        featured.length,
+      recommendations,
+    },
+  });
+}
       // ===================================
       // FIND PRODUCT
       // ===================================
