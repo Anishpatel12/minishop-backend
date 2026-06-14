@@ -1,0 +1,53 @@
+const About =
+  require("../models/About");
+
+// GET
+exports.getAbout =
+  async (req, res) => {
+    try {
+      const about =
+        await About.findOne();
+
+      res.json(about);
+    } catch (error) {
+      res.status(500).json({
+        message:
+          error.message,
+      });
+    }
+  };
+
+// UPDATE
+exports.updateAbout =
+  async (req, res) => {
+    try {
+      let about =
+        await About.findOne();
+
+      if (!about) {
+        about =
+          await About.create(
+            req.body
+          );
+      } else {
+        about =
+          await About.findByIdAndUpdate(
+            about._id,
+            req.body,
+            {
+              new: true,
+            }
+          );
+      }
+
+      res.json({
+        success: true,
+        about,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message:
+          error.message,
+      });
+    }
+  };

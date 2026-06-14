@@ -314,6 +314,48 @@ if (
     },
   });
 }
+// ===================================
+// RESTOCK RECOMMENDATIONS
+// ===================================
+
+if (
+  text
+    .toLowerCase()
+    .includes("restock")
+) {
+  const products =
+    await Product.find();
+
+  const lowStockProducts =
+    products.filter(
+      (p) => p.stock <= 10
+    );
+
+  const recommendations =
+    lowStockProducts.map(
+      (product) => ({
+        title: product.title,
+        currentStock:
+          product.stock,
+        suggestedRestock:
+          Math.max(
+            50,
+            100 -
+              product.stock
+          ),
+        category:
+          product.category,
+      })
+    );
+
+  return res.json({
+    success: true,
+    message:
+      "Restock Recommendations Ready",
+    restock:
+      recommendations,
+  });
+}
       // ===================================
       // FIND PRODUCT
       // ===================================
