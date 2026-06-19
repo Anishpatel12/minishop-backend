@@ -12,7 +12,7 @@ try {
 const response =
 await resend.emails.send({
 from:
-"MiniShop [onboarding@resend.dev](mailto:onboarding@resend.dev)",
+  "MiniShop <onboarding@resend.dev>",
 
     to: email,
 
