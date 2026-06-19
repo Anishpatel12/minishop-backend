@@ -21,66 +21,34 @@ const transporter =
     },
   });
 
-const sendOTPEmail =
-  async (email, otp) => {
-    try {
-      console.log(
-        "Sending email to:",
-        email
-      );
+const sendOTPEmail = async (email, otp) => {
+  try {
+    console.log("Sending email to:", email);
 
-      const info =
-        await transporter.sendMail({
-          from: `"MiniShop" <${process.env.EMAIL_USER}>`,
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "MiniShop OTP Verification",
+      html: `
+        <h2>Your OTP</h2>
+        <h1>${otp}</h1>
+        <p>Valid for 5 minutes</p>
+      `,
+    });
 
-          to: email,
+    console.log("EMAIL SENT");
+    console.log(info.response);
 
-          subject:
-            "MiniShop OTP Verification",
+    return true;
+  } catch (error) {
+    console.error(
+      "EMAIL ERROR:",
+      error
+    );
 
-          html: `
-            <div style="font-family: Arial; padding:20px">
-              <h2>MiniShop Login Verification</h2>
-
-              <p>Your OTP is:</p>
-
-              <h1 style="color:#2563eb;">
-                ${otp}
-              </h1>
-
-              <p>
-                This OTP is valid for
-                5 minutes.
-              </p>
-            </div>
-          `,
-        });
-
-      console.log(
-        "EMAIL SENT SUCCESSFULLY"
-      );
-
-      console.log(
-        "Message ID:",
-        info.messageId
-      );
-
-      console.log(
-        "Response:",
-        info.response
-      );
-
-      return true;
-    } catch (error) {
-      console.error(
-        "EMAIL SEND ERROR:"
-      );
-
-      console.error(error);
-
-      throw error;
-    }
-  };
+    throw error;
+  }
+};
 
 module.exports = {
   sendOTPEmail,

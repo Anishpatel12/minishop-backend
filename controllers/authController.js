@@ -150,10 +150,22 @@ exports.loginUser = async (req, res) => {
 );
 
  ///TEMPORARY TESTING
- await sendOTPEmail(
-  user.email,
-  otp
- );
+ try {
+  await sendOTPEmail(
+    user.email,
+    otp
+  );
+} catch (err) {
+  console.error(
+    "MAIL FAILED:",
+    err
+  );
+
+  return res.status(500).json({
+    message:
+      "Email service failed",
+  });
+}
 
 console.log(
   "OTP:",
