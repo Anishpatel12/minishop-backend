@@ -1,3 +1,5 @@
+// server/services/emailService.js
+
 const nodemailer = require("nodemailer");
 
 const transporter =
@@ -21,21 +23,63 @@ const transporter =
 
 const sendOTPEmail =
   async (email, otp) => {
-    await transporter.sendMail({
-      from:
-        process.env.EMAIL_USER,
+    try {
+      console.log(
+        "Sending email to:",
+        email
+      );
 
-      to: email,
+      const info =
+        await transporter.sendMail({
+          from: `"MiniShop" <${process.env.EMAIL_USER}>`,
 
-      subject:
-        "MiniShop OTP Verification",
+          to: email,
 
-      html: `
-      <h2>Your OTP</h2>
-      <h1>${otp}</h1>
-      <p>Valid for 5 minutes</p>
-      `,
-    });
+          subject:
+            "MiniShop OTP Verification",
+
+          html: `
+            <div style="font-family: Arial; padding:20px">
+              <h2>MiniShop Login Verification</h2>
+
+              <p>Your OTP is:</p>
+
+              <h1 style="color:#2563eb;">
+                ${otp}
+              </h1>
+
+              <p>
+                This OTP is valid for
+                5 minutes.
+              </p>
+            </div>
+          `,
+        });
+
+      console.log(
+        "EMAIL SENT SUCCESSFULLY"
+      );
+
+      console.log(
+        "Message ID:",
+        info.messageId
+      );
+
+      console.log(
+        "Response:",
+        info.response
+      );
+
+      return true;
+    } catch (error) {
+      console.error(
+        "EMAIL SEND ERROR:"
+      );
+
+      console.error(error);
+
+      throw error;
+    }
   };
 
 module.exports = {

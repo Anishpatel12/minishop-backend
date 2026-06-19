@@ -150,10 +150,10 @@ exports.loginUser = async (req, res) => {
 );
 
 // TEMPORARY TESTING
-// await sendOTPEmail(
-//   user.email,
-//   otp
-// );
+ await sendOTPEmail(
+  user.email,
+  otp
+  );
 
 console.log(
   "OTP:",
