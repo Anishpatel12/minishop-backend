@@ -132,6 +132,14 @@ const userSchema =
 
         default: false,
       },
+      otp: {
+  type: String,
+  default: "",
+},
+
+otpExpiry: {
+  type: Date,
+},
 
       //
       // LAST LOGIN

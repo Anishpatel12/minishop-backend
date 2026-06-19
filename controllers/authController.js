@@ -3,6 +3,11 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
 const jwt = require("jsonwebtoken");
+const {
+  sendOTPEmail,
+} = require(
+  "../services/emailService"
+);
 
 // TOKEN
 const generateToken = (id) => {
@@ -101,71 +106,156 @@ exports.registerUser = async (
 };
 
 // LOGIN
-exports.loginUser = async (
-  req,
-  res
-) => {
-  try {
-    const {
-      email,
-      password,
-    } = req.body;
+exports.loginUser = async (req, res) => {
+  console.log("LOGIN API HIT");
 
-    // FIND USER
-    const user =
-      await User.findOne({
-        email,
-      });
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
 
     if (!user) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Invalid Credentials",
-        });
+      return res.status(400).json({
+        message: "Invalid Credentials",
+      });
     }
 
-    // CHECK PASSWORD
-    const isMatch =
-      await bcrypt.compare(
-        password,
-        user.password
-      );
+    const isMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
 
     if (!isMatch) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Invalid Credentials",
-        });
+      return res.status(400).json({
+        message: "Invalid Credentials",
+      });
     }
 
-    // TOKEN
-    const token =
-      generateToken(user._id);
+    const otp = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
 
-    res.json({
-      token,
+    console.log("Generated OTP:", otp);
 
-      user: {
-        id: user._id,
+    user.otp = otp;
 
-        name: user.name,
+    user.otpExpiry =
+      Date.now() + 5 * 60 * 1000;
 
-        email: user.email,
+    await user.save();
 
-        role: user.role,
-      },
+    console.log(
+      "Sending OTP to:",
+      user.email
+    );
+
+    await sendOTPEmail(
+      user.email,
+      otp
+    );
+
+    console.log(
+      "OTP Email Sent Successfully"
+    );
+
+    return res.json({
+      success: true,
+      otpRequired: true,
+      email: user.email,
+      message:
+        "OTP sent to your email",
     });
   } catch (error) {
-    res.status(500).json({
-      message:
-        "Server Error",
+    console.error(
+      "LOGIN ERROR:",
+      error
+    );
+
+    return res.status(500).json({
+      message: error.message,
     });
   }
-};
+}; // <-- YE MISSING THA
+exports.verifyOTP =
+  async (req, res) => {
+    try {
+      const {
+        email,
+        otp,
+      } = req.body;
+
+      const user =
+        await User.findOne({
+          email,
+        });
+
+      if (!user) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "User not found",
+          });
+      }
+
+      if (
+        user.otp !== otp
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Invalid OTP",
+          });
+      }
+
+      if (
+        Date.now() >
+        user.otpExpiry
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "OTP Expired",
+          });
+      }
+
+      user.otp = "";
+      user.otpExpiry =
+        null;
+
+      user.lastLogin =
+        new Date();
+
+      await user.save();
+
+      const token =
+        generateToken(
+          user._id
+        );
+
+      res.json({
+        success: true,
+        token,
+
+        user: {
+          id: user._id,
+          name:
+            user.name,
+          email:
+            user.email,
+          role:
+            user.role,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        message:
+          "Server Error",
+      });
+    }
+  };
 
 // PROFILE
 exports.getProfile = async (
