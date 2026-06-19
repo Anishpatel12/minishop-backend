@@ -145,26 +145,26 @@ exports.loginUser = async (req, res) => {
     await user.save();
 
     console.log(
-      "Sending OTP to:",
-      user.email
-    );
+  "Sending OTP to:",
+  user.email
+);
 
-    await sendOTPEmail(
-      user.email,
-      otp
-    );
+// TEMPORARY TESTING
+// await sendOTPEmail(
+//   user.email,
+//   otp
+// );
 
-    console.log(
-      "OTP Email Sent Successfully"
-    );
+console.log(
+  "OTP:",
+  otp
+);
 
-    return res.json({
-      success: true,
-      otpRequired: true,
-      email: user.email,
-      message:
-        "OTP sent to your email",
-    });
+return res.json({
+  success: true,
+  otpRequired: true,
+  email: user.email,
+});
   } catch (error) {
     console.error(
       "LOGIN ERROR:",
