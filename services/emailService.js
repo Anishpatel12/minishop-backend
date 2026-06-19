@@ -5,39 +5,38 @@ const transporter =
     host: "smtp.gmail.com",
     port: 587,
     secure: false,
+
     auth: {
       user:
         process.env.EMAIL_USER,
+
       pass:
         process.env.EMAIL_PASS,
     },
+
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
-const sendOTPEmail = async (
-  email,
-  otp
-) => {
-  await transporter.sendMail({
-    from:
-      process.env.EMAIL_USER,
 
-    to: email,
+const sendOTPEmail =
+  async (email, otp) => {
+    await transporter.sendMail({
+      from:
+        process.env.EMAIL_USER,
 
-    subject:
-      "MiniShop Login Verification",
+      to: email,
 
-    html: `
-      <div style="font-family:Arial;padding:20px">
-        <h2>MiniShop OTP Verification</h2>
+      subject:
+        "MiniShop OTP Verification",
 
-        <p>Your login OTP is:</p>
-
-        <h1>${otp}</h1>
-
-        <p>Valid for 5 minutes.</p>
-      </div>
-    `,
-  });
-};
+      html: `
+      <h2>Your OTP</h2>
+      <h1>${otp}</h1>
+      <p>Valid for 5 minutes</p>
+      `,
+    });
+  };
 
 module.exports = {
   sendOTPEmail,
